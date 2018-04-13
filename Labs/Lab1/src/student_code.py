@@ -32,7 +32,7 @@ def bf_search(map):
 
 	while (len(queue) > 0):
 		y, x = queue.pop() 
-		print "value = ", map[y][x]
+		print "indices = ", y, x, "value = ", map[y][x]
 
 		if map[y][x] == 3:
 			map[y][x] == 5
@@ -65,7 +65,7 @@ def bf_search(map):
 	return False
 
 def inRangeAndNotVisited(y, x, map):
-	return (y >= 0 and y < common.constants.MAP_HEIGHT-1 and x >= 0 and x < common.constants.MAP_WIDTH-1 and (map[y][x] == 0 or map[y][x] == 3))
+	return (y >= 0 and y < common.constants.MAP_HEIGHT and x >= 0 and x < common.constants.MAP_WIDTH and (map[y][x] == 0 or map[y][x] == 3))
 
 def constructPath(predecessors, currPoint, map):
 	print "constructPath"
