@@ -1,14 +1,53 @@
 import common
 def df_search(map):
-	found = False
 	# PUT YOUR CODE HERE
 	# access the map using "map[y][x]"
 	# y between 0 and common.constants.MAP_HEIGHT-1
 	# x between 0 and common.constants.MAP_WIDTH-1
-	return found
+
+	start = (0, 0)
+	for x in range(0, common.constants.MAP_WIDTH-1):
+		for y in range(0, common.constants.MAP_HEIGHT-1):
+			if map[y][x] == 2:
+				start = (y, x) 
+
+	# new, empty queue
+	stack = []
+	predecessors = {}
+
+	# add to stack, path
+	yStart, xStart = start
+	stack.append((yStart, xStart))
+	predecessors[start] = None
+
+	while (len(stack) > 0):
+		y, x = stack.pop() 
+
+		# Found the end!
+		if map[y][x] == 3:
+			map[y][x] == 5
+			constructPath(predecessors, (y, x), map)
+			map[yStart][xStart] = 5
+			return True
+
+		# Mark as visited and process children
+		map[y][x] = 4
+		if inRangeAndNotVisited(y - 1, x, map):
+			stack.append((y - 1, x))
+			predecessors[(y - 1, x)] = (y, x) 
+		if inRangeAndNotVisited(y, x - 1, map):
+			stack.append((y, x - 1))
+			predecessors[(y, x - 1)] = (y, x) 
+		if inRangeAndNotVisited(y + 1, x, map):
+			stack.append((y + 1, x))
+			predecessors[(y + 1, x)] = (y, x)
+		if inRangeAndNotVisited(y, x + 1, map):
+			stack.append((y, x + 1))
+			predecessors[(y, x + 1)] = (y, x)
+
+	return False
 
 def bf_search(map):
-	found = False;
 	# PUT YOUR CODE HERE
 	# access the map using "map[y][x]"
 	# y between 0 and common.constants.MAP_HEIGHT-1
@@ -62,21 +101,9 @@ def inRangeAndNotVisited(y, x, map):
 
 # Draw the path from the end to start
 def constructPath(predecessors, currPoint, map):
-	print "constructPath"
-	print "end point: ", currPoint
 	while(predecessors[currPoint] != None):
-		print "contructing the path"
 		currY, currX = currPoint
 		map[currY][currX] = 5
 		currPoint = predecessors[currPoint]
 	return
 
-
-
-
-# depth first
-# stack = []
-# stack.append()
-# stack.pop()
-
-# First [y][x+1], then [y+1][x], then [y][x-1], and finally [y-1][x]
