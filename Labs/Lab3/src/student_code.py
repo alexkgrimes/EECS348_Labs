@@ -9,20 +9,63 @@ def minmax_tictactoe(board, turn):
 	
 	result = common.game_status(board);
 
-	# if the state is a terminal state: 
-	# 	return the state’s utility
-	# if the next agent is MAX: 
-	# 	return max-value(state)
-	# if the next agent is MIN: 
-	# 	return min-value(state)
+	# terminal state, someone winning
+	if result == common.constants.X or result == common.constants.O:
+		return result
+	# terminal state, tie
+	if result == common.constants.NONE and boardFull(board):
+		return result
 
-	return common.constants.NONE
+	# otherwise, keep playing
+	if turn == common.constants.X:
+		return maxX(board)
+	if turn == common.constants.O:
+		return maxO(board)
 
-	def max-value(state):
-		initialize v = -∞
-		for each successor of state:
-			v = max(v, value(successor))
-		return v
+def maxO(board):
+	# set not to -inf, because X is worst you can do
+	v = common.constants.X
+	for i, space in enumerate(board):
+		# if the space is empty, you can put an O there
+		if space == common.constants.NONE:
+			board[i] = common.constants.O
+			v = max_o(v, minmax_tictactoe(board, common.constants.X))
+			board[i] = common.constants.NONE
+	return v
+
+def maxX(board):
+	# set not to inf, because O is worst you can do
+	v = common.constants.O
+	for i, space in enumerate(board):
+		# if the space is empty, you can put an X there
+		if space == common.constants.NONE:
+			board[i] = common.constants.X
+			v = max_x(v, minmax_tictactoe(board, common.constants.O))
+			board[i] = common.constants.NONE
+	return v
+
+# helper to test for ties vs. not done
+def boardFull(board):
+	for space in board:
+		if space == common.constants.NONE:
+			return False
+	return True
+
+# both named max because they are both just trying to max themselves winning
+def max_x(v, minmax):
+	if v == common.constants.X or minmax == common.constants.X:
+		return common.constants.X
+	if v == common.constants.NONE or minmax == common.constants.NONE:
+		return common.constants.NONE
+	return common.constants.O
+
+def max_o(v, minmax):
+	if v == common.constants.O or minmax == common.constants.O:
+		return common.constants.O
+	if v == common.constants.NONE or minmax == common.constants.NONE:
+		return common.constants.NONE
+	return common.constants.X
+
 
 def abprun_tictactoe(board, turn):
 	#put your code here:
