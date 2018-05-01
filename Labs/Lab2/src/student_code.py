@@ -8,8 +8,8 @@ def astar_search(map):
 	
 	start = (0, 0)
 	goal = (0, 0)
-	for x in range(0, common.constants.MAP_WIDTH-1):
-		for y in range(0, common.constants.MAP_HEIGHT-1):
+	for x in range(0, common.constants.MAP_WIDTH):
+		for y in range(0, common.constants.MAP_HEIGHT):
 			if map[y][x] == 2:
 				start = (y, x) 
 			if map[y][x] == 3:
