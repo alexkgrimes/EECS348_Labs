@@ -7,7 +7,7 @@ class variables:
 	explored=0
 	
 def print_sudoku(sudoku):
-	print 
+	print
 	for y in range(9):
 		v=""
 		for x in range(9):

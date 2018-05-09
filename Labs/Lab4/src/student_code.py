@@ -68,7 +68,7 @@ def recurForwardCheck(sudoku, unassignedVars, varList):
 		sudoku[i][j] = 0
 
 	# undo the pop's at the beginning
-	varList.insert(0, (i, j))
+	varList.insert(0, currVar)
 	unassignedVars[currVar] = values
 	return False
 
@@ -90,18 +90,49 @@ def removeInconsistentValues(sudoku, unassignedVars, currVar):
 # ------------------------ MRV --------------------------- #
 
 def sudoku_mrv(sudoku):
-	# PUT YOUR CODE HERE
-	# access the sudoku using "sudoku[y][x]"
-	# y between 0 and 9
-	# x between 0 and 9
 	# function must return the number of permutations performed
 	# the use of variables.counter to keep track of the worlds 
 	# explored is optional but recommended 
-	variables.counter=0
-	variables.counter+=1000000
+	variables.counter = 0
+	unassignedVars = initUnassignedVarsForward(sudoku)
+	varList = initVarListMRV(sudoku, unassignedVars)
+	recurMRV(sudoku, unassignedVars, varList)
 	return variables.counter
 
-# ------------------ helpers ----------------------------- #
+def recurMRV(sudoku, unassignedVars, varList):
+	variables.counter += 1
+
+	varList = sorted(unassignedVars, key=lambda k: len(unassignedVars[k]), reverse=False)
+
+	# all vars have been assigned
+	if not varList:
+		return True
+
+	# get current variable, with corresponding values
+	currVar = varList.pop(0)
+	i, j = currVar
+	values = unassignedVars[currVar]
+	unassignedVars.pop(currVar)
+
+	# for each value in the domain
+	for value in values:
+		sudoku[i][j] = value
+		copyUnassignedVars = copyDict(unassignedVars)
+		if not removeInconsistentValues(sudoku, copyUnassignedVars, currVar):
+			result = recurMRV(sudoku, copyUnassignedVars, varList)
+			if result == True:
+				return result
+		sudoku[i][j] = 0
+
+	# undo pop's
+	varList.append(currVar)
+	unassignedVars[currVar] = values
+	return False
+
+
+
+
+# ------------------------ helpers ----------------------------- #
 
 def fitsConstraints(sudoku, y, x, z):
 	for i in range(9):
@@ -142,6 +173,9 @@ def initVarList(sudoku):
 			if sudoku[i][j] == 0:
 				varList.append((i, j))
 	return varList
+
+def initVarListMRV(sudoku, unassignedVars):
+	return sorted(unassignedVars, key=lambda k: len(unassignedVars[k]), reverse=False)
 
 def inSameSquare(var, currVar):
 	i, j = var
