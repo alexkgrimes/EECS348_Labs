@@ -129,9 +129,6 @@ def recurMRV(sudoku, unassignedVars, varList):
 	unassignedVars[currVar] = values
 	return False
 
-
-
-
 # ------------------------ helpers ----------------------------- #
 
 def fitsConstraints(sudoku, y, x, z):
