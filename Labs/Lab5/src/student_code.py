@@ -1,122 +1,141 @@
 import common
 
-def drone_flight_planner (map, policies, values, delivery_fee, battery_drop_cost, dronerepair_cost, discount_per_cycle):
+def drone_flight_planner(map, policies, values, deliveryFee, batteryDropCost, dronerepairCost, discountPerCycle):
 	# PUT YOUR CODE HERE
-	# access the map using "map[y][x]"
-	# access the policies using "policies[y][x]"
-	# access the values using "values[y][x]"
-	# y between 0 and 5
-	# x between 0 and 5
-	# function must return the value of the cell corresponding to the starting position of the drone
-	# 
-
-	# 70, 15, 15, 0 regular
-	# 80, 10, 10, 0 
-	# start: 1, end: 2, enemy: 3
-
-	# fill up policies, values, 
-	# battery drop cost is cost for each move without out turbo, turbo doubles it
-	# discount per cycle is gamma
-
-	# return expected utility, converge within 0.1%
-	# south, west, north, east search order
-
 	# V_k+1 (s) = max over all a -> sum over all next states (t(s,a,s')) (R(s,a,s') + gamma * V_k(s')) 
 
-	return droneFlightPlannerRecur(map, policies, values, delivery_fee, battery_drop_cost, dronerepair_cost, 1 - discount_per_cycle)
+	discountPerCycle = 1 - discountPerCycle
+	actions = [common.constants.SOFF, common.constants.WOFF, common.constants.NOFF, common.constants.EOFF, common.constants.SON, common.constants.WON, common.constants.NON, common.constants.EON]
+	states = [common.constants.SOUTH, common.constants.WEST, common.constants.NORTH, common.constants.EAST]
+	directions = [[1,0], [0,-1], [-1,0], [0,1]]
 
-def droneFlightPlannerRecur(map, policies, values, deliveryFee, batteryDropCost, dronerepairCost, discountPerCycle):
-
-	oldValues = [row[:] for row in values]
-
+	# initialize RIVAL and CUSTOMER spaces
 	for i in range(6):
 		for j in range(6):
-			currState = (i, j)
-			bestPolicy, bestValue = maxActionReward(map, policies, oldValues, deliveryFee, batteryDropCost, dronerepairCost, discountPerCycle, currState)
-			values[i][j] = bestValue
-			policies[i][j] = bestPolicy
+			if map[i][j] == common.constants.RIVAL:
+				values[i][j] = -dronerepairCost
+				policies[i][j] = common.constants.EXIT
+			if map[i][j] == common.constants.CUSTOMER:
+				values[i][j] = deliveryFee
+				policies[i][j] = common.constants.EXIT
 
-	if done(values, oldValues):
-		return valueOfStart(map, values)
-	else:
-		return droneFlightPlannerRecur(map, policies, values, deliveryFee, batteryDropCost, dronerepairCost, discountPerCycle)
+	while True:
+		# cache old values 
+		oldValues = [row[:] for row in values]
+		oldPolicies = [row[:] for row in policies]
 
+		# loop over all positions in the map
+		for i in range(6):
+			for j in range(6):
+				maxValue = float('-inf')
+				if map[i][j] != common.constants.RIVAL and map[i][j] != common.constants.CUSTOMER:	
 
-# returns sum of rewards for each action from a currState
-def maxActionReward(map, policies, values, deliveryFee, batteryDropCost, dronerepairCost, discountPerCycle, currState):
-	rewards = {}
-	i, j = currState
+					# loop over all actions
+					for action in actions:
+						value = 0
+						
+						# loop over all next states
+						for state in states:
+							iPrime = i + directions[state - 1][0]
+							jPrime = j + directions[state - 1][1]
 
-	rewards[common.constants.SOFF] = \
-		((.7 * (reward(map, i + 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i + 1, j, batteryDropCost))) 
-		+ (.15 * (reward(map, i, j + 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j + 1, batteryDropCost))) 
-		+ (.15 * (reward(map, i, j - 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j - 1, batteryDropCost)))) 
+							transition = T(iPrime, jPrime, i, j, action)
+							reward = R(action, batteryDropCost)
 
-	rewards[common.constants.WOFF] = \
-		((.7 * (reward(map, i, j - 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j - 1, batteryDropCost))) 
-		+ (.15 * (reward(map, i + 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i + 1, j, batteryDropCost))) 
-		+ (.15 * (reward(map, i - 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i - 1, j, batteryDropCost)))) 
-	
-	rewards[common.constants.NOFF] = \
-		((.7 * (reward(map, i - 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i - 1, j, batteryDropCost))) 
-		+ (.15 * (reward(map, i, j + 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j + 1, batteryDropCost))) 
-		+ (.15 * (reward(map, i, j - 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j - 1, batteryDropCost))))
+							# the usual case
+							if not outOfBounds(iPrime, jPrime):
+								value += transition * (reward + discountPerCycle * oldValues[iPrime][jPrime])
+							# othewise, bounce off the wall
+							else:
+								if iPrime < 0:
+									value += transition * (reward + discountPerCycle * oldValues[i][jPrime])
+								if iPrime > 5:
+									value += transition * (reward + discountPerCycle * oldValues[i][jPrime])
+								if jPrime < 0:
+									value += transition * (reward + discountPerCycle * oldValues[iPrime][j])
+								if jPrime > 5:
+									value += transition * (reward + discountPerCycle * oldValues[iPrime][j])
 
-	rewards[common.constants.EOFF] = \
-		((.7 * (reward(map, i, j + 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j + 1, batteryDropCost))) 
-		+ (.15 * (reward(map, i + 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i + 1, j, batteryDropCost))) 
-		+ (.15 * (reward(map, i - 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i - 1, j, batteryDropCost))))
+						# find max over all actions	
+						if value > maxValue:
+							maxValue = value
+							policies[i][j] = action
+							values[i][j] = maxValue
 
-	batteryDropCost *= 2
+		# if converged, break, otherwise keep iterating
+		if valuesDone(oldValues, values) and policiesDone(oldPolicies, policies):
+			break
 
-	rewards[common.constants.SON] = \
-		((.8 * (reward(map, i + 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i + 1, j, batteryDropCost))) \
-		+ (.1 * (reward(map, i, j + 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j + 1, batteryDropCost))) \
-		+ (.1 * (reward(map, i, j - 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j - 1, batteryDropCost)))) 
+	return valueOfStart(map, values)
 
-	rewards[common.constants.WON] = \
-		((.8 * (reward(map, i, j - 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j - 1, batteryDropCost))) \
-		+ (.1 * (reward(map, i + 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i + 1, j, batteryDropCost))) \
-		+ (.1 * (reward(map, i - 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i - 1, j, batteryDropCost)))) 
-
-	rewards[common.constants.NON] = \
-		((.8 * (reward(map, i - 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i - 1, j, batteryDropCost))) \
-		+ (.1 * (reward(map, i, j + 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j + 1, batteryDropCost))) \
-		+ (.1 * (reward(map, i, j - 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j - 1, batteryDropCost)))) 
-
-	rewards[common.constants.EON] = \
-		((.8 * (reward(map, i, j + 1, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i, j + 1, batteryDropCost))) \
-		+ (.1 * (reward(map, i + 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i + 1, j, batteryDropCost))) \
-		+ (.1 * (reward(map, i - 1, j, deliveryFee, batteryDropCost, dronerepairCost) + discountPerCycle * value(values, i - 1, j, batteryDropCost)))) 
-
-	# batteryDropCost /= 2
-	maxPolicy, maxValue = max(rewards.iteritems(), key=lambda x:x[1])
-	return (maxPolicy, maxValue)
-
-def reward(map, i, j, deliveryFee, batteryDropCost, dronerepairCost):
-	# if you bouce off the wall, no reward
-	if outOfBounds(i, j):
+def R(action, batteryDropCost):
+	if action == common.constants.NOFF or action == common.constants.EOFF or action == common.constants.WOFF or action == common.constants.SOFF:
 		return -batteryDropCost
-	# if you hit an enemy, must pay to move there and repair
-	if map[i][j] == common.constants.RIVAL:
-		return -(dronerepairCost + batteryDropCost)
-	# if you found the end, pay to move but reap rewards
-	if map[i][j] == common.constants.CUSTOMER:
-		return  (deliveryFee - batteryDropCost)
-	# just a normal space or pizza space
-	else:
-		return (-batteryDropCost)
-	
-def value(values, i, j, batteryDropCost):
-	if outOfBounds(i, j):
-		return -batteryDropCost
-	else:
-		return values[i][j]
+	if action == common.constants.NON or action == common.constants.EON or action == common.constants.WON or action == common.constants.SON:
+		return -(2 * batteryDropCost)
 
-def done(values, newValues):
+def T(iPrime, jPrime, i, j, action):
+	if action == common.constants.SOFF:
+		if iPrime == i + 1:
+			return 0.7
+		if jPrime == j + 1 or jPrime == j - 1:
+			return 0.15
+
+	if action == common.constants.WOFF:
+		if jPrime == j - 1:
+			return 0.7
+		if iPrime == i + 1 or iPrime == i - 1:
+			return 0.15
+
+	if action == common.constants.NOFF:
+		if iPrime == i - 1:
+			return 0.7
+		if jPrime == j + 1 or jPrime == j - 1:
+			return 0.15
+
+	if action == common.constants.EOFF:
+		if jPrime == j + 1:
+			return 0.7
+		if iPrime == i + 1 or iPrime == i - 1:
+			return 0.15
+
+	if action == common.constants.SON:
+		if iPrime == i + 1:
+			return 0.8
+		if jPrime == j + 1 or jPrime == j - 1:
+			return 0.1
+	
+	if action == common.constants.WON:
+		if jPrime == j - 1:
+			return 0.8
+		if iPrime == i + 1 or iPrime == i - 1:
+			return 0.1
+
+	if action == common.constants.NON:
+		if iPrime == i - 1:
+			return 0.8
+		if jPrime == j + 1 or jPrime == j - 1:
+			return 0.1
+
+	if action == common.constants.EON:
+		if jPrime == j + 1:
+			return 0.8
+		if iPrime == i + 1 or iPrime == i - 1:
+			return 0.1
+
+	return 0.0
+
+def valuesDone(values, newValues):
 	for i in range(6):
 		for j in range(6):
-			if abs(values[i][j] - newValues[i][j]) > .01:
+			if abs(values[i][j] - newValues[i][j]) > .001:
+				return False
+	return True
+
+def policiesDone(policies, newPolicies):
+	for i in range(6):
+		for j in range(6):
+			if policies[i][j] != newPolicies[i][j]:
 				return False
 	return True
 
@@ -128,5 +147,7 @@ def valueOfStart(map, values):
 
 def outOfBounds(i, j):
 	return i < 0 or i > 5 or j < 0 or j > 5
+
+
 
 		
