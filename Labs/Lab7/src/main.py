@@ -83,15 +83,15 @@ def check_circles ( title, filename, c_gold):
 	
 all_passed = True
 
-all_passed = check_slopeintercept("Line 1","Labs/Lab7/line1.bmp",-.6953,403.7019) and all_passed
-all_passed = check_slopeintercept("Line 2","Labs/Lab7/line2.bmp", -1.5157,551.7759) and all_passed	
-all_passed = check_slopeintercept("Line 3","Labs/Lab7/line3.bmp",.3352,29.5148) and all_passed
-all_passed = check_slopeintercept("Line 4","Labs/Lab7/line4.bmp",.7253,28.5143) and all_passed
+# all_passed = check_slopeintercept("Line 1","Labs/Lab7/line1.bmp",-.6953,403.7019) and all_passed
+# all_passed = check_slopeintercept("Line 2","Labs/Lab7/line2.bmp", -1.5157,551.7759) and all_passed	
+# all_passed = check_slopeintercept("Line 3","Labs/Lab7/line3.bmp",.3352,29.5148) and all_passed
+# all_passed = check_slopeintercept("Line 4","Labs/Lab7/line4.bmp",.7253,28.5143) and all_passed
 
-all_passed = check_normal("Line 5","Labs/Lab7/line5.bmp",0.0768,337.1482) & all_passed
-all_passed = check_normal("Line 6","Labs/Lab7/line6.bmp",0.0017,553.2833) & all_passed
-all_passed = check_normal("Line 7","Labs/Lab7/line7.bmp",3.1295,-125.5159) & all_passed
-all_passed = check_normal("Line 8","Labs/Lab7/line8.bmp",0.0244,212.1952) & all_passed
+# all_passed = check_normal("Line 5","Labs/Lab7/line5.bmp",0.0768,337.1482) & all_passed
+# all_passed = check_normal("Line 6","Labs/Lab7/line6.bmp",0.0017,553.2833) & all_passed
+# all_passed = check_normal("Line 7","Labs/Lab7/line7.bmp",3.1295,-125.5159) & all_passed
+# all_passed = check_normal("Line 8","Labs/Lab7/line8.bmp",0.0244,212.1952) & all_passed
 
 all_passed = check_circles("Circles 1","Labs/Lab7/circles1.bmp",7) & all_passed
 all_passed = check_circles("Circles 2","Labs/Lab7/circles2.bmp",5) & all_passed
