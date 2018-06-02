@@ -60,11 +60,9 @@ def part_two_classifier(data_train,data_test):
 	y = [0 for x in range(9)]
 	learningRate = 0.01
 	error = 1
-	iterations = 10000
+	iterations = 1000
 
-	count = 0
-
-	while error > 0 and iterations > 0:
+	while iterations > 0:
 
 		error = 0
 		# for each data sample
@@ -87,7 +85,7 @@ def part_two_classifier(data_train,data_test):
 				weights[expected][1] += learningRate * data_train[i][1]
 				weights[expected][2] += learningRate * weights[expected][2] + 1
 				
-				error += abs(predicted - expected)
+			error += abs(predicted - expected)
 		iterations -= 1
 
 	for i in range(common.constants.TEST_SIZE):
@@ -98,3 +96,10 @@ def part_two_classifier(data_train,data_test):
 		data_test[i][2] = predicted
 
 	return
+
+# def done(weights, newWeights):
+# 	for i in range(len(weights)):
+# 		for j in range(3):
+# 			if abs(weights[i][j] - newWeights[i][j]) > 0.01:
+# 				return False
+# 	return True

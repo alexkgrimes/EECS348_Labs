@@ -1,6 +1,7 @@
 import common
 import student_code
 import array
+import time
 
 class bcolors:
 	RED    = "\x1b[31m"
@@ -55,6 +56,7 @@ def run_experiment1(filename):
 	
 
 def run_experiment2(filename):
+	startTime = time.time()
 	training_data = common.init_data(common.constants.TRAINING_SIZE,common.constants.DATA_DIM+1)
 	test_data = common.init_data(common.constants.TEST_SIZE,common.constants.DATA_DIM+1)
 	gold_data = [0 for x in range(common.constants.TEST_SIZE)]
@@ -82,6 +84,8 @@ def run_experiment2(filename):
 		print "(" + bcolors.RED + "FAIL" + bcolors.NORMAL + ") maximum "+ str(float(common.constants.TEST_SIZE)*.05);
 
 	print
+	timeElapsed = time.time() - startTime
+	print timeElapsed
 	return success
 
 all_passed=True
