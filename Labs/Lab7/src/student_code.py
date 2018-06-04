@@ -1,8 +1,6 @@
 import common
 import math
 
-import matplotlib.pyplot as plt
-
 def detect_slope_intercept(image):
 	# PUT YOUR CODE HERE
 	# access the image using "image[chanel][y][x]"
@@ -83,9 +81,87 @@ def detect_circles(image):
 	# where 0 <= y < common.constants.WIDTH and 0 <= x < common.constants.HEIGHT 
 	# to create an auxiliar bidimentional structure 
 	# you can use "space=common.init_space(heigh, width)"
-	return 0
+	numCircles = 0
+	radius = 30.0
+	radiusSquared = 30.0 * 30.0
 
-# def draw_graph():
-# 	plt.plot(, l_accuracy)
-# 	plt.show()
-# 				
+	newImage = common.init_space(480, 640)
+	hough = common.init_space(480, 640)
+
+	# make edge detection greyscale image
+	newImage, maxGradient = sobel(image, newImage)
+
+	# normalize the image
+	for y in range(common.constants.HEIGHT):
+		for x in range(common.constants.WIDTH):
+			newImage[y][x] = (newImage[y][x] / maxGradient) * 255
+
+	# find the circles in hough space
+	for y in range(common.constants.HEIGHT):
+		for x in range(common.constants.WIDTH):
+			if newImage[y][x] == 255:
+				for a in range(640):
+					if (x - a)**2 < radiusSquared:
+						b = float(y) - math.sqrt(radiusSquared - float((x - a)**2))
+						if 0.0 < b and b < 480.0:
+							hough[int(b)][a] += 1 
+
+	# find number of circles
+	for y in range(480):
+		for x in range(640):
+			if hough[y][x] > 32:
+				numCircles += 1
+
+	return numCircles
+
+def sobel(image, newImage):
+
+	maxGradient = 0
+
+	for y in range(1, common.constants.HEIGHT - 1):
+		for x in range(1, common.constants.WIDTH - 1):
+
+			Dx = 0.0
+			Dy = 0.0
+
+			intensity = (image[0][y - 1][x - 1] + image[1][y - 1][x - 1] + image[2][y - 1][x - 1]) / 3
+
+			Dx += -intensity
+			Dy += -intensity
+
+			intensity = (image[0][y][x - 1] + image[1][y][x - 1] + image[2][y][x - 1]) / 3
+
+			Dx += -2 * intensity
+
+			intensity = (image[0][y + 1][x + 1] + image[1][y + 1][x + 1] + image[2][y + 1][x + 1]) / 3
+
+			Dx += -intensity
+			Dy += intensity
+
+			intensity = (image[0][y - 1][x] + image[1][y - 1][x] + image[2][y - 1][x]) / 3
+
+			Dy += -2 * intensity
+
+			intensity = (image[0][y + 1][x] + image[1][y + 1][x] + image[2][y + 1][x]) / 3
+
+			Dy += 2 * intensity
+
+			intensity = (image[0][y - 1][x + 1] + image[1][y - 1][x + 1] + image[2][y - 1][x + 1]) / 3
+
+			Dx += intensity
+			Dy += -intensity
+
+			intensity = (image[0][y][x - 1] + image[1][y][x - 1] + image[2][y][x - 1]) / 3
+
+			Dx += 2 * intensity
+
+			intensity = (image[0][y + 1][x + 1] + image[1][y + 1][x + 1] + image[2][y + 1][x + 1]) / 3
+
+			Dx += intensity
+			Dy += intensity
+
+			gradient = math.sqrt(Dx * Dx + Dy * Dy)
+			maxGradient = max(maxGradient, gradient)
+			newImage[y][x] = gradient
+
+	return newImage, maxGradient
